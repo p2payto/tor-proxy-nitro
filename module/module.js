@@ -25,7 +25,7 @@ export default defineNuxtModule({
         throw new Error(`[tor-proxy-nitro] Invalid endpoint entry: ${JSON.stringify(ep)}`)
       }
 
-      const method = String(ep.method).toLowerCase()
+      const method = String(ep.method).toUpperCase()
       const routeRel = String(ep.route).replace(/^\/+/, '').replace(/\/+$/, '')
       const route = `${prefix}/${routeRel}`
 

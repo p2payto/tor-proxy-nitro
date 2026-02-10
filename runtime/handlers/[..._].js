@@ -67,12 +67,11 @@ function sanitizeIncomingResponseHeaders(inHeaders) {
 }
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-
-  const secret = config.torProxySecret
-  console.log("TOR Proxy Secret:", secret);
-  const onionBase = config.public.robosatsCoordinatorUrl
-  const socksUrl = config.public.torSocksUrl
+  const {
+    torProxySecret: secret,
+    robosatsCoordinatorUrl: onionBase,
+    torSocksUrl: socksUrl
+  } = useRuntimeConfig()
 
   if (!secret || !onionBase) {
     setResponseStatus(event, 500)
