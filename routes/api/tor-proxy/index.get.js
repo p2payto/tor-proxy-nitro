@@ -1,2 +1,2 @@
-import handler from '../../../runtime/handlers/index.get.js'
+import handler from '../../../runtime/handlers/api/tor-proxy/index.get.js'
 export default handler
