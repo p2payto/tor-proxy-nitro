@@ -42,7 +42,8 @@ while remaining usable as a standalone Tor proxy for other projects.
 
 ### Standalone
 
-Set environment variables as explained in the `.env.standalone` file.
+Set environment variables as explained in the `.env.standalone` file.  
+Deploy the repo and add the header `x-tor-proxy-secret` with the `NUXT_TOR_PROXY_SECRET`.
 
 ### Module
 
