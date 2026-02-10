@@ -1,7 +1,4 @@
 export const endpoints = [
-  {
-    method: 'all',
-    route: 'api/tor-proxy/**',
-    file: 'api/tor-proxy/[..._].js'
-  }
+  { method: 'GET', route: '', file: 'index.js' },
+  { method: 'ALL', route: '**', file: '[..._].js' }
 ]

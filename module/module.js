@@ -12,22 +12,23 @@ export default defineNuxtModule({
   },
 
   setup(options, nuxt) {
-    nuxt.options.runtimeConfig.public.robosatsCoordinatorUrl = nuxt.options.runtimeConfig.public.robosatsCoordinatorUrl ?? 'http://otmoonrndnrddqdlhu6b36heunmbyw3cgvadqo2oqeau3656wfv7fwad.onion'
-
+    // Do NOT write into runtimeConfig.public here.
+    // Users should set runtimeConfig in their app if needed.
     const resolver = createResolver(import.meta.url)
-
-    const prefix = (options.prefix || '/api/tor-proxy').replace(/\/+$/, '')
+    const prefix = (options.prefix).replace(/\/+$/, '')
 
     const seen = new Set()
 
     for (const ep of endpoints) {
-      if (!ep?.method || !ep?.route || !ep?.file) {
+      if (!ep?.method || ep.route === undefined || ep.route === null || !ep?.file) {
         throw new Error(`[tor-proxy-nitro] Invalid endpoint entry: ${JSON.stringify(ep)}`)
       }
 
       const method = String(ep.method).toUpperCase()
+
+      // route is RELATIVE to prefix ('' or '**' etc)
       const routeRel = String(ep.route).replace(/^\/+/, '').replace(/\/+$/, '')
-      const route = `${prefix}/${routeRel}`
+      const route = routeRel ? `${prefix}/${routeRel}` : `${prefix}`
 
       const key = `${method} ${route}`
       if (seen.has(key)) {
@@ -35,11 +36,18 @@ export default defineNuxtModule({
       }
       seen.add(key)
 
-      addServerHandler({
-        method,
+      const def = {
         route,
         handler: resolver.resolve(`../runtime/handlers/${ep.file}`)
-      })
+      }
+
+      // Support "ALL" meaning: match any HTTP method
+      if (method !== 'ALL') {
+        def.method = method
+      }
+
+      addServerHandler(def)
     }
   }
 })
+
