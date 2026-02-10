@@ -1,6 +1,11 @@
 import { defineNuxtModule, addServerHandler, createResolver } from '@nuxt/kit'
 import { endpoints } from './endpoints.js'
 
+function toBool(v) {
+  if (typeof v === 'boolean') return v
+  return String(v || '').toLowerCase() === 'true'
+}
+
 export default defineNuxtModule({
   meta: {
     name: 'tor-proxy-nitro',
@@ -8,32 +13,52 @@ export default defineNuxtModule({
   },
 
   defaults: {
-    prefix: '/api/tor-proxy'
+    enabled: false,
+    prefix: '/api/tor-proxy',
+
+    // Optional overrides (can be set by host app)
+    torProxySecret: undefined,
+    torSocksUrl: undefined,
+    robosatsCoordinatorUrl: undefined
   },
 
   setup(options, nuxt) {
-    // Do NOT write into runtimeConfig.public here.
-    // Users should set runtimeConfig in their app if needed.
+    const enabled = toBool(options.enabled)
+    if (!enabled) return
+
+    // Map module options -> runtimeConfig (server-only)
+    // Keep it non-public and override only if provided
+    if (options.torProxySecret !== undefined) {
+      nuxt.options.runtimeConfig.torProxySecret = options.torProxySecret
+    }
+    if (options.torSocksUrl !== undefined) {
+      nuxt.options.runtimeConfig.torSocksUrl = options.torSocksUrl
+    }
+    if (options.robosatsCoordinatorUrl !== undefined) {
+      nuxt.options.runtimeConfig.robosatsCoordinatorUrl = options.robosatsCoordinatorUrl
+    }
+
+    // Defaults (only if still missing)
+    nuxt.options.runtimeConfig.torSocksUrl =
+      nuxt.options.runtimeConfig.torSocksUrl ?? 'socks5h://127.0.0.1:9050'
+
+    nuxt.options.runtimeConfig.robosatsCoordinatorUrl =
+      nuxt.options.runtimeConfig.robosatsCoordinatorUrl ??
+      'http://otmoonrndnrddqdlhu6b36heunmbyw3cgvadqo2oqeau3656wfv7fwad.onion'
+
     const resolver = createResolver(import.meta.url)
-    const prefix = (options.prefix).replace(/\/+$/, '')
+    const prefix = String(options.prefix || '/api/tor-proxy').replace(/\/+$/, '')
 
     const seen = new Set()
 
     for (const ep of endpoints) {
-      if (!ep?.method || ep.route === undefined || ep.route === null || !ep?.file) {
-        throw new Error(`[tor-proxy-nitro] Invalid endpoint entry: ${JSON.stringify(ep)}`)
-      }
-
       const method = String(ep.method).toUpperCase()
 
-      // route is RELATIVE to prefix ('' or '**' etc)
       const routeRel = String(ep.route).replace(/^\/+/, '').replace(/\/+$/, '')
       const route = routeRel ? `${prefix}/${routeRel}` : `${prefix}`
 
       const key = `${method} ${route}`
-      if (seen.has(key)) {
-        throw new Error(`[tor-proxy-nitro] Duplicate endpoint: ${key}`)
-      }
+      if (seen.has(key)) throw new Error(`[tor-proxy-nitro] Duplicate endpoint: ${key}`)
       seen.add(key)
 
       const def = {
@@ -41,13 +66,10 @@ export default defineNuxtModule({
         handler: resolver.resolve(`../runtime/handlers/${ep.file}`)
       }
 
-      // Support "ALL" meaning: match any HTTP method
-      if (method !== 'ALL') {
-        def.method = method
-      }
+      // "ALL" = no method constraint
+      if (method !== 'ALL') def.method = method
 
       addServerHandler(def)
     }
   }
 })
-

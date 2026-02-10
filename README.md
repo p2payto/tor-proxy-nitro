@@ -36,3 +36,30 @@ This project is designed to integrate cleanly with:
 - `p2pay-core`
 
 while remaining usable as a standalone Tor proxy for other projects.
+
+
+## Configuration
+
+### Standalone
+
+Set environment variables as explained in the `.env.standalone` file.
+
+### Module
+
+nuxt.config.js
+```js
+export default defineNuxtConfig({
+  modules: [
+    'tor-proxy-nitro',
+  ],
+
+  torProxyNitro: {
+    enabled: true,
+    torProxySecret: process.env.NUXT_TOR_PROXY_SECRET,
+    torSocksUrl: process.env.NUXT_TOR_SOCKS_URL, // Optional. Defaults to 'socks5h://127.0.0.1:9050'
+    robosatsCoordinatorUrl: process.env.NUXT_ROBOSATS_COORDINATOR_URL
+  }
+})
+```
+Set environment variables as explained in the `.env.module` file.
+
