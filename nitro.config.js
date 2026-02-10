@@ -1,5 +1,5 @@
 const toBoolean = (v) => String(v || '').toLowerCase() === 'true'
-console.log(toBoolean(process.env.NUXT_TOR_PROXY_ENABLED))
+
 export default defineNitroConfig({
   runtimeConfig: {
     moduleEnabled: toBoolean(process.env.NUXT_TOR_PROXY_ENABLED),
