@@ -48,7 +48,7 @@ function sanitizeOutgoingHeaders(incoming) {
   delete headers['accept-encoding']
   delete headers.origin
   delete headers.referer
-  delete headers['x-tor-proxy-secret']
+  delete headers['x-tor-proxy-torProxySecret']
 
   return headers
 }
@@ -67,13 +67,10 @@ function sanitizeIncomingResponseHeaders(inHeaders) {
 }
 
 export default defineEventHandler(async (event) => {
-  const {
-    torProxySecret: secret,
-    robosatsCoordinatorUrl: onionBase,
-    torSocksUrl: socksUrl
-  } = useRuntimeConfig()
 
-  if (!secret || !onionBase) {
+  const { torProxySecret, robosatsCoordinatorUrl, torSocksUrl } = useRuntimeConfig()
+
+  if (!torProxySecret || !robosatsCoordinatorUrl) {
     setResponseStatus(event, 500)
     return { error: 'Proxy misconfigured' }
   }
@@ -83,19 +80,19 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const incomingHeaders = getRequestHeaders(event)
 
-  if (incomingHeaders['x-tor-proxy-secret'] !== secret) {
+  if (incomingHeaders['x-tor-proxy-torProxySecret'] !== torProxySecret) {
     setResponseStatus(event, 403)
     return { error: 'Forbidden' }
   }
 
-  const targetUrl = joinUrl(onionBase, `/${params}`)
+  const targetUrl = joinUrl(robosatsCoordinatorUrl, `/${params}`)
 
   let body
   if (method !== 'GET' && method !== 'HEAD') {
     body = await readBody(event)
   }
 
-  const agent = new SocksProxyAgent(socksUrl)
+  const agent = new SocksProxyAgent(torSocksUrl)
 
   const resp = await got(targetUrl, {
     method,
