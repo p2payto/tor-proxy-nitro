@@ -1,9 +1,10 @@
 {
   "name": "@p2payto/tor-proxy-nitro",
   "version": "0.1.0",
-  "author": "Learntheropes",
+  "author": "Learntheropes <giovanni@learntheropes.xyz>",
   "license": "MIT",
   "type": "module",
+  "private": true,
   "files": [
     "runtime",
     "module",
