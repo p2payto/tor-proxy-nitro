@@ -1,10 +1,7 @@
 import { defineNuxtModule, addServerHandler, createResolver } from '@nuxt/kit'
 import { endpoints } from './endpoints.js'
 
-function toBool(v) {
-  if (typeof v === 'boolean') return v
-  return String(v || '').toLowerCase() === 'true'
-}
+const toBoolean = (v) => String(v || '').toLowerCase() === 'true'
 
 export default defineNuxtModule({
   meta: {
@@ -23,7 +20,7 @@ export default defineNuxtModule({
   },
 
   setup(options, nuxt) {
-    const enabled = toBool(options.enabled)
+    const enabled = toBoolean(options.enabled)
     if (!enabled) return
 
     // Map module options -> runtimeConfig (server-only)
